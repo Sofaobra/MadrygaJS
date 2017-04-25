@@ -163,7 +163,7 @@ madryga = {};
     var FRAME_MASK = new Long(0, 0xffff);
     var TEXT_MASK = new Long(0xffffffff, 0xffff0000);
     var SEVEN = new Long(0, 0x7);
-    var XFF = new Long(0, 0xff);
+    var xFF = new Long(0, 0xff);
 
     /**
      * Генерирует все (круговые?) ключи, необходимые для шифрования/дешифрования текста произвольной длинны
