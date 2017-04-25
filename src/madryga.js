@@ -54,7 +54,7 @@ function rightRotGreaterEq32(h, l, n) {
 
 
 /**
- * Long - Represents a 64-bit unsigned int data type
+ * Long - 64-битный тип данных unsigned int
  */
 function Long(h,l) {
     this.hi = h;
@@ -62,7 +62,7 @@ function Long(h,l) {
 }
     
 /**
- * Performs a circular left-shift on this 64-bit Long value
+ * Выполняет циклический сдвиг влево по этому 64-разрядному длинному значению
  */
 Long.prototype.circularLeftShift = function(n) {
     n = n % 64;
@@ -76,7 +76,7 @@ Long.prototype.circularLeftShift = function(n) {
 }
 
 /**
- * Performs a circular right-shift on this 64-bit Long value
+ * Выполняет циклический сдвиг вправо по этому 64-разрядному длинному значению
  */
 Long.prototype.circularRightShift = function(n) {
     n = n % 64;
@@ -90,28 +90,28 @@ Long.prototype.circularRightShift = function(n) {
 }
 
 /**
- * Performs bitwise AND on this Long value and the passed Long parameter
+ * Выполняет побитовое И с данным длинным значением и полученным параметром
  */
 Long.prototype.AND = function(other) {
     return new Long(this.hi & other.hi, this.lo & other.lo);
 }
 
 /**
- * Performs bitwise XOR on this Long value and the passed Long parameter
+ * Выполняет XOR с данным значением и полученным параметром
  */
 Long.prototype.XOR = function(other) {
     return new Long(this.hi ^ other.hi, this.lo ^ other.lo);
 }
 
 /**
- * Performs bitwise OR on this Long value and the passed Long parameter
+ * Выполняет побитовое ИЛИ с данным значением и полученным параметром
  */
 Long.prototype.OR = function(other) {
     return new Long(this.hi | other.hi, this.lo | other.lo);
 }
 
 /**
- * Shifts this value right by n bits 
+ * Сдвигает данное значением на n бит направо 
  */
 Long.prototype.rightShift = function(n) {
     var hi_shift, lo_shift;
@@ -134,7 +134,7 @@ Long.prototype.rightShift = function(n) {
 }
 
 /**
- * Shifts this value left by n bits 
+ * Сдвигает данное значением на n бит налево 
  */
 Long.prototype.leftShift = function(n) {
     var hi_shift, lo_shift;
@@ -158,7 +158,7 @@ Long.prototype.leftShift = function(n) {
 
 madryga = {};
 (function() {
-    var BLOCK_SIZE = 64; // 64-bit blocks
+    var BLOCK_SIZE = 64; // 64-битный блок
     var KEY_HASH = new Long(0x0f1e2d3c, 0x4b5a6978);
     var FRAME_MASK = new Long(0, 0xffff);
     var TEXT_MASK = new Long(0xffffffff, 0xffff0000);
@@ -166,11 +166,10 @@ madryga = {};
     var xFF = new Long(0, 0xff);
 
     /**
-     * Generates all of the round keys needed for encryption or decryption
-     * of an arbitrary-length text.
-     * @param {Long} key The key to use for encryption/decryption
-     * @param {int} rounds The number of rounds to generate subkeys for
-     * @return {Array<Long>} An array of subkeys
+     * Генерирует все (круговые?) ключи, необходимые для шифрования/дешифрования текста произвольной длинны
+     * @param {Long} key Ключ для шифрования/дешифрования
+     * @param {int} rounds Количество раундов для генерации подключей
+     * @return {Array<Long>} Массив подключей
      */
     function getRoundKeys(key, rounds) {
         var roundKey = key;
@@ -183,12 +182,10 @@ madryga = {};
     }
 
     /**
-     * Performs n-bit circular left rotation on two-byte frame
-     * @param {Long} frame The frame to rotate; This is actually a Long, but
-     *          only the two least significant bytes are used and should be set
-     * @param {int} n The number of bits to rotate this frame by
-     * @return {Long} Frame rotated by n bits to the left. Only two least sig.
-     *          bytes of frame will be set
+     * Выполняет n-битное циклическое вращение налево в двухбайтном кадре
+     * @param {Long} frame Кадр поворота; Хоть и Long, но используются только два младших значащих байта 
+     * @param {int} n Количество бит для поворота кадра
+     * @return {Long} Кадр, повернутый на n бит влево. Будут установлены только два наименьших байта кадра
      */
     function rotateFrame(frame, n) {
         n = n % 16;
@@ -211,19 +208,18 @@ madryga = {};
             textBlock = plaintext[k];
             for (var i=0; i < 8; i++) {
                 for (var j=0; j < 8; j++) {
-                    // workFrame is W1, W2 here
+                    // workFrame (Рабочий кадр) здесь это W1, W2 
                     workFrame = textBlock.circularLeftShift(8*j).AND(FRAME_MASK);
                     roundKey = keys[i*8 + j];
-                    // textBlock >> (56 - 8*j) == W3 here
+                    // textBlock >> (56 - 8*j) == W3 здесь
                     // extract rot. count from 3 least significant bits of W3
                     rotationCount = textBlock.rightShift(56 - 8*j).AND(SEVEN).lo;
-                    // XOR W3 with least sig. byte of round key 
-                    // This sets W3 to its new value
+                    // XORим W3 с младшим значащими байтом ключа (with least sig. byte of round key) 
+                    // This sets W3 to its new value Устаналивает новое значение В3 
                     textBlock = textBlock.XOR((roundKey.AND(xFF).leftShift(56 - 8*j)));
                     workFrame = rotateFrame(workFrame, rotationCount);
-                    // The AND zeroes out the W1W2 bytes of the text block
-                    // The OR fills those zeroed-out bytes with the values 
-                    //   of W1W2 from the work frame
+                    // AND обнуляет байты W1W2 из text block
+                    // OR заполняет обнуленные байты значениями W1W2 из рабочего кадра workframe
                     textBlock = (textBlock.AND(TEXT_MASK.circularRightShift(8*j)))
                         .OR(workFrame.circularLeftShift(64 - 8*j));
                 }
@@ -238,8 +234,7 @@ madryga = {};
         return doEncrypt(plaintext, keys);
     }
 
-    // Decryption is the reverse of encryption, with the steps performed in 
-    // reverse order and the order of the round keys reversed.
+    // Расшифровка - это обратная операция шифрования, при этом шаги выполняются в обратном порядке и порядок ключей инвертируется.
     function doDecrypt(ciphertext, keys) {
         var roundKey, textBlock, workFrame, rotationCount, plaintext;
         plaintext = new Array(ciphertext.length);
@@ -281,9 +276,9 @@ madryga = {};
  }).apply(madryga);
 
 /**
- * Adds padding to the end of a string until it is the required length
- * Takes str: the string to pad, len: the required string length
- * Returns the string, padded to a multiple of len with null chars
+ * Добавляет отступы в конец строки, пока она не будет требуемой длины
+ * Берет str: это строка to pad, len: требуемая длина строки
+ * Возвращает строку, дополненную нулевыми символами до нужной длины
  */
 function padString(str, len) {
     var strLen = str.length;
@@ -295,9 +290,8 @@ function padString(str, len) {
 }
 
 /**
- * Takes an input string and returns an Array of 64-bit Longs,
- * padded as necessary. This function effectively takes the input and breaks 
- * it into an Array of 64-bit blocks for encryption or decryption.
+ * Принимает входную строку и возвращает 64-битный массив, дополненный при необходимости.
+ * Функция эффективно принимает ввод и разбивает его на массив из 64-битных блоков для шифрования и дешифрования
  */
 function strToLongs(str) {
     str = padString(str, 8);
