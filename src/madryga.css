@@ -163,7 +163,6 @@ table.input-table {
 }
 
 .output {
-    display: none;
 }
 
 .text {
@@ -177,5 +176,4 @@ table.input-table {
 
 #decr-hint {
 	padding: 0px 0px 0px 4px;
-    display: none;
 }
